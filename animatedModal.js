@@ -1,19 +1,28 @@
 /*=========================================
- * animatedModal.js: Version 1.0
- * author: João Pereira
+ * ORIGINAL : animatedModal.js: Version 1.0
+ * ORIGINAL : author: João Pereira
  * website: http://www.joaopereira.pt
  * email: joaopereirawd@gmail.com
  * Licensed MIT 
+ * customized by Angeltcho 
+ * email: angeltcho@gmail.com
+=========================================*/
+/*=========================================
+ * animatedModal.js: Version 1.0
+ * Remarques : 
+ * pour fermer le modal, ajouter l'attribut data-role = close
+ * obligatoire : le trigger doit avoir un ID !
 =========================================*/
 
 (function ($) {
  
     $.fn.animatedModal = function(options) {
-        var modal = $(this);
-        
+        var initiator = $(this);
+        var modal_id;
+
         //Defaults
         var settings = $.extend({
-            modalTarget:'animatedModal', 
+            modalTarget:'am', 
             position:'fixed', 
             width:'100%', 
             height:'100%', 
@@ -34,21 +43,8 @@
             beforeClose: function() {}, 
             afterClose: function() {}
  
-            
-
+           
         }, options);
-        
-        var closeBt = $('.close-'+settings.modalTarget);
-
-        //console.log(closeBt)
-
-        var href = $(modal).attr('href'),
-            id = $('body').find('#'+settings.modalTarget),
-            idConc = '#'+id.attr('id');
-            //console.log(idConc);
-            // Default Classes
-            id.addClass('animated');
-            id.addClass(settings.modalTarget+'-off');
 
         //Init styles
         var initStyles = {
@@ -63,57 +59,65 @@
             'opacity':settings.opacityOut,
             '-webkit-animation-duration':settings.animationDuration
         };
-        //Apply stles
-        id.css(initStyles);
 
-        modal.click(function(event) {       
+        $(document).on('click', initiator.selector, function(event) {
             event.preventDefault();
+//            build Modal and append
+            buildModal();
+            
+        var id = $('body').find('#'+settings.modalTarget);
+            modal_id = id;
+            id.addClass('animated');
+            id.addClass(settings.modalTarget+'-off');
+             id2 = id.attr('id');
+             id.css(initStyles);
             $('body, html').css({'overflow':'hidden'});
-            if (href == idConc) {
+            if (id2 == settings.modalTarget) {
                 if (id.hasClass(settings.modalTarget+'-off')) {
                     id.removeClass(settings.animatedOut);
                     id.removeClass(settings.modalTarget+'-off');
                     id.addClass(settings.modalTarget+'-on');
                 } 
-
                  if (id.hasClass(settings.modalTarget+'-on')) {
                     settings.beforeOpen();
                     id.css({'opacity':settings.opacityIn,'z-index':settings.zIndexIn});
                     id.addClass(settings.animatedIn);  
                     id.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', afterOpen);
                 };  
-            } 
+            }
         });
-
-
-
-        closeBt.click(function(event) {
+        
+        $(document).on('click', 'a[data-role=close]',function(event) {
             event.preventDefault();
-            $('body, html').css({'overflow':'auto'});
-
+            $('html, body').css('overflow', 'auto'); 
             settings.beforeClose(); //beforeClose
-            if (id.hasClass(settings.modalTarget+'-on')) {
+            var id = modal_id;
+             if (id.hasClass(settings.modalTarget+'-on')) {
                 id.removeClass(settings.modalTarget+'-on');
                 id.addClass(settings.modalTarget+'-off');
-            } 
-
-            if (id.hasClass(settings.modalTarget+'-off')) {
+             }
+             if (id.hasClass(settings.modalTarget+'-off')) {
                 id.removeClass(settings.animatedIn);
                 id.addClass(settings.animatedOut);
                 id.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', afterClose);
-            };
-
+             }
         });
 
-        function afterClose () {       
-            id.css({'z-index':settings.zIndexOut});
+        function buildModal() {
+            if($('body #'+settings.modalTarget).length == 0) {
+                $('body').append('<div id="'+settings.modalTarget+'"><div  id="closebt-container"><a href="" data-role="close"><img class="closebt" src="img/closebt.svg" title="Fermer"></a></div><div class="modal-content"></div></div>');
+                $('.modal-content').append(settings.html);
+                
+            }
+        }
+        function afterClose () {      
+            modal_id.css({'z-index':settings.zIndexOut}).remove();
             settings.afterClose(); //afterClose
         }
-
+        
         function afterOpen () {       
             settings.afterOpen(); //afterOpen
         }
-
     }; // End animatedModal.js
 
 }(jQuery));
